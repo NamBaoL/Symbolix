@@ -27,6 +27,7 @@ def run(lines):
 	# Group
 	groups = group(predef['tokens'])
 	parser = parse(groups)
+	# debug(parser)
 
 	# Typed parsed tokens
 	types = typeCode(parser)

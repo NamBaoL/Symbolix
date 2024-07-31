@@ -73,13 +73,13 @@ lambdas = {
 	], '~': [
 
 	], ':': [
-		[[All, All], ['stack += [typed(i) for i in [x, y]]', 'None']]
+		[[All, All], ['del stack[-2:]; stack += [typed(i) for i in [x, y]] + [None, None]', 'None']]
 	], 
 }
 
 def runFunc(token, stack):
 	classes = [i[0] for i in stack]
-	debug(classes)
+	# debug(classes)
 	values = [i[1] for i in stack]
 	
 	# Find function
@@ -102,7 +102,7 @@ def runFunc(token, stack):
 	try: exec('\n'.join(function[:-1]))
 	except: pass
 	value = eval(function[-1])
-	# print(value)
+	print(value)
 	if pops: del stack[-pops:]
 	if value: stack += [typed(value)]
 	debug(stack, 'StackDebug', 'cyan', 'green')
