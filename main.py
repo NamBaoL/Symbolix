@@ -33,7 +33,8 @@ def run(lines):
 	types = ['CFAB'[2*(type(i) == list) + (not i if type(i) != list else not i[0])] for i in types]
 	types = list(zip(types, parser))
 	types = [(i[0], trueType(i[1])) if i[0] in 'CA' else i for i in types]
-
+	debug(types, 'TypesDebug')
+	
 	# Run
 	runCode(types)
 	
@@ -63,7 +64,7 @@ def runCode(parsedCode):
 			try: runFunc(token, stack)
 			except: pass
 		else: stack = runFunc(token, stack)
-	print(f'{'{\n' + ''.join(['  ' + str(i[1]) +',\n' for i in stack]) + '}'}')
+	debug(f'{'\n{\n' + ''.join(['  ' + str(i[1]) +',\n' for i in stack]) + '}'}', 'ResultDebug', 'white', 'yellow')
 
 def group(tokens):
 	opened = ''
