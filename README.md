@@ -1,6 +1,8 @@
 # Symbolix
 
-A golfing language inspired by APL
+A golfing language inspired by APL.
+
+**Status:** Still very unstable, more features are still in development.
 
 **Demonstrations:**
 
@@ -9,7 +11,7 @@ print("Hello World") # ==> "Hello World"
 ```
 
 ```python
-filter(lambda x: x % 3 or x % 5, array) # ==> 100#((3%)(5%),\)!(+)/
+sum(filter(lambda x: not(x % 3 or x % 5), array)) # ==> 100#((3%)(5%),\!)!(+)/
 ```
 
 ```python

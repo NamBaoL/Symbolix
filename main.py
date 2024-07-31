@@ -3,7 +3,7 @@ from functions import *
 def run(lines):
 	global stack, predef
 	predef = {
-		'symbols': '"',
+		'symbols': '"()',
 		'functions': Functions,
 		'parsed': '',
 		'array': [],
@@ -30,13 +30,17 @@ def run(lines):
 	# Typed parsed tokens
 	types = typeCode(parser)
 	types = [deepBool(i) for i in types]
+	debug(types)
 	types = ['CFAB'[2*(type(i) == list) + (not i if type(i) != list else not i[0])] for i in types]
 	types = list(zip(types, parser))
 	types = [(i[0], trueType(i[1])) if i[0] in 'CA' else i for i in types]
 	debug(types, 'TypesDebug')
 	
 	# Run
-	runCode(types)
+	stack = runCode(types)
+	print()
+	# print(stack)
+	debug(f'{'\n{\n' + ''.join(['  ' + str(i[1]) +',\n' for i in stack]) + '}\n'}', 'Stack', 'white', 'yellow')
 	
 def trueType(array):
 	if type(array) == str:
@@ -47,27 +51,13 @@ def trueType(array):
 
 def typeCode(parsedCode):
 	global predef
-	if type(parsedCode) != list:
-		if type(parsedCode) in [float, int]: return True
-		elif type(parsedCode) == str: return parsedCode not in predef['functions']
-	return [typeCode(token) for token in parsedCode]
+	if type(parsedCode) == tuple: return False
+	elif type(parsedCode) in [float, int]: return True
+	elif type(parsedCode) == str: return parsedCode not in predef['functions']
+	elif type(parsedCode) == tuple: return [False]
+	else: return [typeCode(token) for token in parsedCode]
 
 deepBool = lambda x: [False not in x] if type(x) == list else x
-
-def runCode(parsedCode):
-	stack = []
-	for token in parsedCode:
-		tokenType = token[0]
-		token = token[1]
-		if tokenType in 'CAB': 
-			stack += [typed(token)]
-			try: runFunc(token, stack)
-			except: pass
-			# debug(stack, 'StackDebug#2', 'white', 'grey')
-		else: stack = runFunc(token, stack)
-	print()
-	print(stack)
-	debug(f'{'\n{\n' + ''.join(['  ' + str(i[1]) +',\n' for i in stack]) + '}\n'}', 'Stack', 'white', 'yellow')
 
 def group(tokens):
 	opened = ''
@@ -79,7 +69,14 @@ def group(tokens):
 		tokenChar = token[1]
 		if tokenType == 'SMB': # Check for open-close symbols
 			if len(opened) == 0: resGroup += [[]]
-			if tokenChar == '"':
+			if tokenChar == ')': 
+				opened = opened[:-1]
+				if len(opened) >= 1: resGroup[-1] += [token]
+			elif tokenChar == '(': 
+				if len(opened) >= 1: resGroup[-1] += [token]
+				else: resGroup[-1] += ['$PRN']
+				opened += tokenChar
+			elif tokenChar == '"':
 				if opened and opened[-1] == '"': 
 					opened = opened[:-1]
 					if len(opened) >= 1: resGroup[-1] += [token]
@@ -97,10 +94,10 @@ def parse(groups):
 	resGroup = []
 	for idx, group in enumerate(groups):
 		if group[0] == 'CONST' or (group[0] == 'FUNC' and group[1] != ' '):
-			try: resGroup += [eval(group[1].replace('`', '-'))]
-			except: resGroup += [group[1]]
-		elif group[0] == '$LIST':
-			resGroup += [parse(groups[idx][1:])]
+			resGroup += [group[1]]
+		elif group[0] in ['$LIST', '$PRN']:
+			if group[0] == '$PRN': resGroup += [(parse(groups[idx][1:]))]
+			else: resGroup += [parse(groups[idx][1:])]
 		elif group[0] == '$STR':
 			resGroup += [f"\"{''.join([i[1] for i in groups[idx][1:]])}\""]
 	return resGroup

@@ -39,7 +39,10 @@ lambdas = {
 		[[Array], 'x[0]'],
 	], '%': [
 		[[Array, 'I'], 'y[x:] + y[:x]']
+	], '\\': [
+		[['I', 'I'], 'y or x']
 	], '&': [
+		[['I', 'I'], 'y and x'],
 		[[Array, Array], '[i for i in y if i in x]']
 	], '!': [
 		[['I', 'not x']]
@@ -55,7 +58,7 @@ lambdas = {
 	], '?': [
 		[[Array], 'where(x)']
 	], '#': [
-		[['I'], 'range(1, x + 1)'],
+		[['I'], 'list(range(1, x + 1))'],
 		[[Array], 'len(x)']
 	], '@': [
 		[[Array, 'I'], 'y[x]']
@@ -66,21 +69,17 @@ lambdas = {
 	], '[': [
 		[[], '{1}']
 	], ']': [
-		[[], ['idx, arr = 0, 0; idx = rindex(stack, Brack); arr = [i[1] if i[0] != "F" else i for i in stack[idx + 1:]]; del stack[idx:]', 'arr']]
-	], '(': [
-		[[], '{2}']
-	], ')': [
-		[[], ['idx, arr = 0, 0; idx = rindex(stack, Parenthesis); arr = tuple([i[1] if i[0] != "F" else i for i in stack[idx + 1:]]); del stack[idx:]', 'arr']]
+		[[], ['idx, arr = 0, 0; idx = rindex(stack, Brack); arr = [i[1] for i in stack[idx + 1:]]; del stack[idx:]', 'arr']]
+	], '~': [
+
 	], ':': [
 		[[All, All], ['stack += [typed(i) for i in [x, y]]', 'None']]
 	], 
 }
 
 def runFunc(token, stack):
-	if Parenthesis in stack and token != ')':
-		return stack + [typed(token)]
-	classes = ['SI'[type(i[1]) == int] if i[0] == 'C' else ('AN'[all([type(j) == int for j in i[1]])] if i[0] == 'A' else i[0]) for i in stack]
-	types = [type(i[1]) for i in stack]
+	classes = [i[0] for i in stack]
+	debug(classes)
 	values = [i[1] for i in stack]
 	
 	# Find function
@@ -93,7 +92,7 @@ def runFunc(token, stack):
 			matched = data; pops = len(data[0]); break
 		
 	# Perform function
-	assert matched, colored('Wrong types for function ' + token, 'red', attrs=['bold'])
+	assert matched, colored(f'Wrong types for function {token}, stack = [...{str(classes[max([len(classes) - 4, 0]):])[1:-1]}]', 'red', attrs=['bold'])
 	if pops >= 1: x = values[-1]
 	if pops >= 2: y = values[-2]
 	if pops >= 3: z = values[-3]
@@ -103,7 +102,7 @@ def runFunc(token, stack):
 	try: exec('\n'.join(function[:-1]))
 	except: pass
 	value = eval(function[-1])
-	print(value)
+	# print(value)
 	if pops: del stack[-pops:]
 	if value: stack += [typed(value)]
 	debug(stack, 'StackDebug', 'cyan', 'green')
@@ -120,9 +119,8 @@ def find(array, elem):
 
 def typed(x):
 	if type(x) == set: return ('O', x) 
-	elif type(x) == list:
-		if any([isfunc(i) for i in x]): return ('F', [i[1] + FuncMark if isfunc(i) else i for i in x])
-		else: return ('AN'[all([type(i) == int for i in x])], x)
+	elif type(x) == list: return ('AN'[all([type(i) == int for i in x])], x)
+	elif type(x) == tuple: return ('B', list(x))
 	else: return ('SI'[type(x) == int], x)
 islist = lambda x: type(x) in [list, str]
 where = lambda x: [i for i, j in enumerate(x) if j] if np.ndim(x) == 1 else [encodeRadix(list(np.shape(x)), i) for i, j in enumerate(np.ravel(x)) if j]
@@ -140,3 +138,19 @@ isfunc = lambda x: type(x) == tuple and x[0] == 'F'
 
 gradeup = lambda x: [x.index(i) for i in sorted(x)]
 gradedown = lambda x: [x.index(i) for i in sorted(x, reverse = True)]
+
+def parseBlock(block):
+	pass
+
+def runCode(code):
+	stack = []
+	for token in code:
+		tokenType = token[0]
+		token = token[1]
+		if tokenType in 'CAB':
+			stack += [typed(tuple(token) if tokenType == 'B' else token)]
+			try: runFunc(token, stack)
+			except: pass
+			debug(stack, 'StackDebug#2', 'white', 'grey')
+		else: stack = runFunc(token, stack) if Parenthesis not in stack or token == ')' else stack + [('F', token)]
+	return stack
