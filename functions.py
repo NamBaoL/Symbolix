@@ -6,62 +6,46 @@ from termcolor import *
 Any = 'SIAN'
 Array = 'SAN'
 List = 'AN'
-Const = 'SA'
+Const = 'SI'
 
 lambdas = {
 	'+': [
-		[['N', 'N'], "y + x"],
-		[['S', 'S'], "y + x"],
-		[['A', 'A'], "y + x"],
-		[[Array, 'I'], "y[-x % len(y):] + y[:-x % len(y)]"], 
-	 ], '-': [
-		[['I', 'I'], "y - x"],
-		[[Array, Any], "find(y, x)"],
-	 ], '*': [
-		[['I', 'I'], "y * x"],
-		[[Array], "random.sample(x, len(x))"],
-	 ], '/': [
-		[['I', 'I'], "y / x"],
-		[[Array, 'I'], "[y[i:i + x] for i in range(len(y) - x + 1)]"],
-		[[List], "np.ravel(x).tolist()"],
-		[['S'], "x.upper()"]
-	 ], '^': [
-		[['I', 'I'], "y ** x"],
-		[[Array], "[i for n, i in enumerate(x) if i not in x[:n]]"],
-	 ], '\'': [
-		[['I'], "ceil(x)"],
-		[[Array], "x[-1]"],
-	 ], '_': [
-		[['I'], "floor(x)"],
-		[[Array], "x[0]"],
-	 ], '{': [
-		[[Const, Const], "min([y, x])"],
-		[[Array], "sorted(x)"],
-	 ], '}': [
-		[[Const, Const], "min([y, x])"],
-		[['N'], "sorted(x, reverse = True)"],
-	 ], '%': [
-		[['I', 'I'], "y % x"],
-		[[Array, Const], "x in y"],
-	 ], '!': [
-		[[Array], "reversed(x)"]
-	 ], '?': [
-		[['I'], "random.randint(1, x) if x != 0 else random.random()"],
-		[[Array], "where(x)"],
-	 ], '@': [
-		[[Array, 'I'], "y[x]"],
-		[[Array, 'N'], "np.reshape(y, tuple(x)).tolist()"],
-	 ], '#': [
-		 [['I'], "range(1, x + 1)"],
-		 [['A'], "len(x)"]
-	 ], '$': [
-		 [['S'], "int(x)"],
-		 [['I'], "str(x)"],
-	 ], '[': [
-		 [[], "{}"]
-   ], ']': [
-		 [[], "idx = stack.rindex({})\ndel stack[idx]\n[i[1] for i in stack[idx + 1:]]", lambda x: len(x) - rindex(x, ('C', {}))]
-   ]
+		[[List, Any], "y + [x] if type(x) != list else x"]
+	], '-': [
+		[[List, Any], "y + [x] if type(x) != list else x"]
+	], '*': [
+		
+  ], '/': [
+		
+	], '^': [
+		
+	], '\'': [
+		
+	], '_': [
+		
+	], '%': [
+		
+	], '&': [
+		
+	], '!': [
+		
+	], '{': [
+		
+	], '}': [
+		
+	], '?': [
+		
+	], '#': [
+		 
+	], '@': [
+		
+	], '$': [
+		 
+	], '[': [
+		[[], "{}"]
+  ], ']': [
+	  [[], "idx = rindex(stack, {}); del stack[idx]\n[i[1] for i in stack[idx + 1:]]", lambda x: len(x) - rindex(x, ('C', {}))]
+  ]
 }
 
 def runFunc(token, stack):
