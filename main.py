@@ -4,7 +4,7 @@ def run(lines):
 	global stack, predef
 	predef = {
 		'symbols': '"',
-		'functions': '[]+-*/^\'_{}|%`!?@#$~&\\=<>,:;() ',
+		'functions': Functions,
 		'parsed': '',
 		'array': [],
 		'tokens': [],
@@ -60,11 +60,14 @@ def runCode(parsedCode):
 		tokenType = token[0]
 		token = token[1]
 		if tokenType in 'CAB': 
-			stack += [(tokenType, token)]
+			stack += [typed(token)]
 			try: runFunc(token, stack)
 			except: pass
+			# debug(stack, 'StackDebug#2', 'white', 'grey')
 		else: stack = runFunc(token, stack)
-	debug(f'{'\n{\n' + ''.join(['  ' + str(i[1]) +',\n' for i in stack]) + '}'}', 'ResultDebug', 'white', 'yellow')
+	print()
+	print(stack)
+	debug(f'{'\n{\n' + ''.join(['  ' + str(i[1]) +',\n' for i in stack]) + '}\n'}', 'Stack', 'white', 'yellow')
 
 def group(tokens):
 	opened = ''
