@@ -94,7 +94,8 @@ def parse(groups):
 	resGroup = []
 	for idx, group in enumerate(groups):
 		if group[0] == 'CONST' or (group[0] == 'FUNC' and group[1] != ' '):
-			resGroup += [group[1]]
+			try: resGroup += [eval(group[1])]
+			except: resGroup += [group[1]]
 		elif group[0] in ['$LIST', '$PRN']:
 			if group[0] == '$PRN': resGroup += [(parse(groups[idx][1:]))]
 			else: resGroup += [parse(groups[idx][1:])]
