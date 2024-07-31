@@ -4,7 +4,7 @@ def run(lines):
 	global stack, predef
 	predef = {
 		'symbols': '"',
-		'functions': '[]+-*/^\'_{}|%!?@#$~&\\=<>,:;() ',
+		'functions': '[]+-*/^\'_{}|%`!?@#$~&\\=<>,:;() ',
 		'parsed': '',
 		'array': [],
 		'tokens': [],
