@@ -10,7 +10,11 @@ Const = 'SI'
 
 lambdas = {
 	'+': [
+		[['N', 'N'], "y + x"],
+		[['S', Const], "y + str(x)"],
+		[[Const, 'S'], "str(y) + x"],
 		[[List, Any], "y + [x] if type(x) != list else x"]
+		[[Any, List], "([y] if type(y) != list else y) + x"]
 	], '-': [
 		[[List, Any], "y + [x] if type(x) != list else x"]
 	], '*': [
