@@ -1,4 +1,5 @@
 from functions import *
+import format
 
 def run(lines):
 	global stack, predef
