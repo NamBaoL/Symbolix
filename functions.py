@@ -11,7 +11,6 @@ List = 'AN'
 Const = 'SI'
 Brack = ('O', {1})
 Parenthesis = ('O', {2})
-FuncMark = ''
 Functions = '[]+-*/^\'_{}|%`!?@#$~&\\=<>,:;() '
 
 lambdas = {
@@ -25,11 +24,11 @@ lambdas = {
 		[['I', 'I'], 'y - x']
 	], '*': [
 		[['I', 'I'], 'y * x'],
-		[[List, List], '[y] + [x]']
+		[[List, List], '[y] + [x]'],
+		[[Array, 'B'], 'arrayMap(stack[:-1], x)']
 	], '/': [
 		[['I', 'I'], 'y / x'],
-		[['S', 'S'], 'y.split(x)'],
-		[[Array, 'B'], 'arrayMap(stack[:-1], x)']
+		[['S', 'S'], 'y.split(x)']
 	], '^': [
 		[['I', 'I'], 'y ** x'],
 		[[Array], '[j for i, j in enumerate(x) if j not in x[:i]]']
@@ -48,7 +47,7 @@ lambdas = {
 		[['I', 'I'], 'y and x'],
 		[[Array, Array], '[i for i in y if i in x]']
 	], '!': [
-		[['I', 'not x']]
+		[['I', '1 if x else 0']]
 	], '`': [
 		[['I'], '-x'],
 		[[Array], 'x[::-1]']
@@ -81,8 +80,11 @@ lambdas = {
 		[[], ['idx, arr = 0, 0; idx = rindex(stack, Brack); arr = [i[1] for i in stack[idx + 1:]]; del stack[idx:]', 'arr']]
 	], '~': [
 
+	], ',': [
+		[[Any], '[x]'],
+		[[Any, 'B', 'B'], ['del stack[-2:]; vals = fork(stack, [y, x]); stack.pop(); stack += [typed(i) for i in vals] + [None] * 3', 'None']]
 	], ':': [
-		[[All, All], ['del stack[-2:]; stack += [typed(i) for i in [x, y]] + [None, None]', 'None']]
+		[[All, All], ['del stack[-2:]; stack += [typed(i) for i in [x, y]] + [None] * 2', 'None']]
 	], 
 }
 
@@ -112,20 +114,18 @@ def runFunc(token, stack):
 	try: exec('\n'.join(function[:-1]))
 	except: pass
 	value = eval(function[-1])
-	# print(token, value)
+	print(token, value)
 	if pops: del stack[-pops:]
 	if value != None: stack += [typed(value)]
-	# debug(stack, 'StackDebug', 'cyan', 'green')
+	debug(stack, 'StackDebug', 'cyan', 'green')
 	return stack
 
 def find(array, elem):
-	result = []
-	lenElem = len(elem) if type(elem) != int else 1
+	result = []; lenElem = len(elem) if type(elem) != int else 1
 	for i in range(len(array) - lenElem + 1):
 		if type(elem) == int: elem = [elem]
 		result.append(int(array[i:i + lenElem] == elem))
-	result += [0] * (lenElem - 1)
-	return result
+	result += [0] * (lenElem - 1); return result
 
 def typed(x):
 	if type(x) == set: return ('O', x) 
@@ -134,41 +134,42 @@ def typed(x):
 	else: return ('SI'[type(x) == int], x)
 
 def encodeRadix(alpha, omega):
-	alpha.reverse()
-	result = []
+	alpha.reverse(); result = []
 	for a in alpha:
 		omega, rem = divmod(omega, a); result += [rem]
 	return list(reversed(result))
 
 def arrayMap(stack, block = []):
 	stack = [i[1] for i in stack]
-	# debug(f"{stack}", 'MapDebug')
 	stack = [stack[:-1] + [i] for i in stack[-1]]
-	# debug(f"{stack}", 'MapDebug')
 	stack = [[typed(j) for j in i] for i in stack]
+	# debug(stack, 'MapDebug')
 	block = parsedToTypes(block)
-	# debug(f"{block}", 'MapBlockDebug')
+	# debug(block, 'MapBlockDebug')
 	stack = [runCode(block, i)[-1][1] for i in stack]
 	return stack
 
+def fork(stack, blocks = [[], []]):
+	array = [0, 0]
+	blocks = [parsedToTypes(blocks[0]), parsedToTypes(blocks[1])]
+	array[0] = runCode(blocks[0], [i for i in stack])[-1][1]
+	array[1] = runCode(blocks[1], [i for i in stack])[-1][1]
+	#debug(stack, 'MapStackDebug')
+	return array
+
 def runCode(code, stack = []):
 	for token in code:
-		tokenType = token[0]
-		token = token[1]
+		tokenType, token = token[0], token[1]
 		if tokenType in 'CAB':
 			stack += [typed(tuple(token) if tokenType == 'B' else token)]
 			try: runFunc(token, stack)
 			except: pass
-			# debug(f"{stack} -- {token}", 'StackDebug#2', 'white', 'grey')
+			debug(f"{stack} -- {token}", 'StackDebug#2', 'white', 'grey')
 		else: stack = runFunc(token, stack) if Parenthesis not in stack or token == ')' else stack + [('F', token)]
 	return stack
 
 def valFormat(value):
-  if type(value) == list: return str(value).replace(',', '')
-  return str(value)
-
-def blockToStr(block):
-	return ()
+  return str(value).replace(',', '') if type(value) == list else str(value)
 
 debug = lambda text, title = 'Debug', colortext = 'cyan', colortitle = 'red': print(colored(title + ': ', colortitle) + colored(str(text), colortext))
 rindex = lambda a, b: len(a) - a[::-1].index(b) - 1
