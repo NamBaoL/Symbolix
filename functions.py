@@ -2,6 +2,7 @@ from math import *
 import numpy as np
 import random
 from termcolor import *
+from parse import *
 
 All = 'SIANF'
 Any = 'SIAN'
@@ -27,7 +28,8 @@ lambdas = {
 		[[List, List], '[y] + [x]']
 	], '/': [
 		[['I', 'I'], 'y / x'],
-		[['S', 'S'], 'y.split(x)']
+		[['S', 'S'], 'y.split(x)'],
+		[[Array, 'B'], 'arrayMap(stack[:-1], x)']
 	], '^': [
 		[['I', 'I'], 'y ** x'],
 		[[Array], '[j for i, j in enumerate(x) if j not in x[:i]]']
@@ -78,6 +80,7 @@ lambdas = {
 }
 
 def runFunc(token, stack):
+	# print(stack)
 	classes = [i[0] for i in stack]
 	# debug(classes)
 	values = [i[1] for i in stack]
@@ -102,10 +105,10 @@ def runFunc(token, stack):
 	try: exec('\n'.join(function[:-1]))
 	except: pass
 	value = eval(function[-1])
-	print(value)
+	# print(token, value)
 	if pops: del stack[-pops:]
 	if value: stack += [typed(value)]
-	debug(stack, 'StackDebug', 'cyan', 'green')
+	# debug(stack, 'StackDebug', 'cyan', 'green')
 	return stack
 
 def find(array, elem):
@@ -122,8 +125,6 @@ def typed(x):
 	elif type(x) == list: return ('AN'[all([type(i) == int for i in x])], x)
 	elif type(x) == tuple: return ('B', list(x))
 	else: return ('SI'[type(x) == int], x)
-islist = lambda x: type(x) in [list, str]
-where = lambda x: [i for i, j in enumerate(x) if j] if np.ndim(x) == 1 else [encodeRadix(list(np.shape(x)), i) for i, j in enumerate(np.ravel(x)) if j]
 
 def encodeRadix(alpha, omega):
 	alpha.reverse()
@@ -132,18 +133,18 @@ def encodeRadix(alpha, omega):
 		omega, rem = divmod(omega, a); result += [rem]
 	return list(reversed(result))
 
-debug = lambda text, title = 'Debug', colortext = 'cyan', colortitle = 'red': print(colored(title + ': ', colortitle) + colored(str(text), colortext))
-rindex = lambda a, b: len(a) - a[::-1].index(b) - 1
-isfunc = lambda x: type(x) == tuple and x[0] == 'F'
+def arrayMap(stack, block = []):
+	stack = [i[1] for i in stack]
+	# debug(f"{stack}", 'MapDebug')
+	stack = [stack[:-1] + [i] for i in stack[-1]]
+	# debug(f"{stack}", 'MapDebug')
+	stack = [[typed(j) for j in i] for i in stack]
+	block = parsedToTypes(block)
+	# debug(f"{block}", 'MapBlockDebug')
+	stack = [runCode(block, i)[-1][1] for i in stack]
+	return stack
 
-gradeup = lambda x: [x.index(i) for i in sorted(x)]
-gradedown = lambda x: [x.index(i) for i in sorted(x, reverse = True)]
-
-def parseBlock(block):
-	pass
-
-def runCode(code):
-	stack = []
+def runCode(code, stack = []):
 	for token in code:
 		tokenType = token[0]
 		token = token[1]
@@ -151,6 +152,25 @@ def runCode(code):
 			stack += [typed(tuple(token) if tokenType == 'B' else token)]
 			try: runFunc(token, stack)
 			except: pass
-			debug(stack, 'StackDebug#2', 'white', 'grey')
+			# debug(f"{stack} -- {token}", 'StackDebug#2', 'white', 'grey')
 		else: stack = runFunc(token, stack) if Parenthesis not in stack or token == ')' else stack + [('F', token)]
 	return stack
+
+def valFormat(value):
+  if type(value) == list: return str(value).replace(',', '')
+  return str(value)
+
+def blockToStr(block):
+	return ()
+
+debug = lambda text, title = 'Debug', colortext = 'cyan', colortitle = 'red': print(colored(title + ': ', colortitle) + colored(str(text), colortext))
+rindex = lambda a, b: len(a) - a[::-1].index(b) - 1
+isfunc = lambda x: type(x) == tuple and x[0] == 'F'
+
+islist = lambda x: type(x) in [list, str]
+where = lambda x: [i for i, j in enumerate(x) if j] if np.ndim(x) == 1 else [encodeRadix(list(np.shape(x)), i) for i, j in enumerate(np.ravel(x)) if j]
+
+gradeup = lambda x: [x.index(i) for i in sorted(x)]
+gradedown = lambda x: [x.index(i) for i in sorted(x, reverse = True)]
+
+# print(arrayMap([1, 2, 3, [1, 2, 3]], [1, '+']))
