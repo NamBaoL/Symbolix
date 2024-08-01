@@ -1,5 +1,6 @@
 from functions import *
 from parse import *
+import os
 
 def run(lines):
 	global stack
@@ -15,4 +16,5 @@ def main():
 	run(file.read().split("\n"))
 
 if __name__ == '__main__':
-  main()
+	os.system('cls' if os.name == 'nt' else 'clear')
+	main()

@@ -40,6 +40,7 @@ lambdas = {
 		[['I'], 'floor(x)'],
 		[[Array], 'x[0]'],
 	], '%': [
+		[['I', 'I'], 'y % x'],
 		[[Array, 'I'], 'y[x:] + y[:x]']
 	], '\\': [
 		[['I', 'I'], 'y or x']
@@ -59,6 +60,12 @@ lambdas = {
 		[[Array], 'gradedown(x)']
 	], '?': [
 		[[Array], 'where(x)']
+	], '<': [
+		[['I', 'I'], 'int(y < x)']
+	], '>': [
+		[['I', 'I'], 'int(y < x)']
+	], '=': [
+		[[Any, Any], 'int(y == x)']
 	], '#': [
 		[['I'], 'list(range(1, x + 1))'],
 		[[Array], 'len(x)']
@@ -107,7 +114,7 @@ def runFunc(token, stack):
 	value = eval(function[-1])
 	# print(token, value)
 	if pops: del stack[-pops:]
-	if value: stack += [typed(value)]
+	if value != None: stack += [typed(value)]
 	# debug(stack, 'StackDebug', 'cyan', 'green')
 	return stack
 
